@@ -1,6 +1,6 @@
 name: sky_device_info
 description: A Flutter plugin to get device info.
-version: 0.0.4
+version: 0.0.5
 homepage: https://github.com/xuqiqiang/sky_device_info
 
 environment:

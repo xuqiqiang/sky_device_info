@@ -5,16 +5,19 @@ import 'dart:io';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:flutter/services.dart';
 import 'package:sky_device_info/beans.dart';
-import 'package:network_info_plus/network_info_plus.dart' as networkInfoPlus;
+import 'package:network_info_plus/network_info_plus.dart' as network_info_plus;
+
+typedef OnNetworkChanged = Function(NetworkInfo?);
 
 class SkyDeviceInfo {
   final _channel = const MethodChannel('sky_device_info');
-  Function(DeviceInfo)? _onDeviceInfo;
-  static DeviceInfo? _deviceInfo;
-  static NetworkInfo? _networkInfo;
-  static String? _networkInfoJson;
-  Function(NetworkInfo?)? _onNetworkChanged;
-  dynamic subscription;
+  Function(DeviceInfo?)? _onDeviceInfo;
+  DeviceInfo? _deviceInfo;
+  NetworkInfo? _networkInfo;
+  String? _networkInfoJson;
+  final List<OnNetworkChanged> _onNetworkCallbackList = [];
+  dynamic _networkSubscription;
+  bool? _loadNetworkInfo;
 
   static log(Object? object) {
     bool inDebugMode = false;
@@ -25,32 +28,31 @@ class SkyDeviceInfo {
     print('$object');
   }
 
-  SkyDeviceInfo() {
-    _channel.setMethodCallHandler((MethodCall call) async {
-      // print("playerPlugin method=${call.method} arguments=${call.arguments}");
-      if (call.method == 'onDeviceInfo') {
-        log('deviceInfo ${_onDeviceInfo != null} ${call.arguments}');
-        DeviceInfo deviceInfo = DeviceInfo.fromJson(jsonDecode(call.arguments));
-        _deviceInfo = deviceInfo;
-        _onDeviceInfo?.call(deviceInfo);
-        _onDeviceInfo = null;
-      } else if (call.method == 'onNetworkInfo') {
-        if (_networkInfoJson != call.arguments) {
-          _networkInfoJson = call.arguments;
-          log('loadNetworkInfo ${call.arguments}');
-          NetworkInfo networkInfo =
-          NetworkInfo.fromJson(jsonDecode(call.arguments));
-          _networkInfo = networkInfo;
-          _onNetworkChanged?.call(networkInfo);
-        }
-      }
-    });
+  SkyDeviceInfo._privateConstructor();
+
+  static final SkyDeviceInfo _instance = SkyDeviceInfo._privateConstructor();
+
+  factory SkyDeviceInfo() {
+    return _instance;
   }
 
   NetworkInfo? get networkInfo => _networkInfo;
 
-  set onNetworkChanged(Function(NetworkInfo?)? value) {
-    _onNetworkChanged = value;
+  addNetworkCallback(OnNetworkChanged value) {
+    _onNetworkCallbackList.add(value);
+    if (_networkInfo != null) {
+      value.call(_networkInfo);
+    }
+  }
+
+  removeNetworkCallback(OnNetworkChanged value) {
+    _onNetworkCallbackList.remove(value);
+  }
+
+  onNetworkChanged(NetworkInfo? networkInfo) {
+    for (OnNetworkChanged item in _onNetworkCallbackList) {
+      item.call(networkInfo);
+    }
   }
 
   Future<NetworkInfo> readNetworkInfoByDart() async {
@@ -76,7 +78,7 @@ class SkyDeviceInfo {
 
   Future<NetworkInfo> _readNetworkInfo(connectivityResult) async {
     if (connectivityResult == ConnectivityResult.wifi) {
-      final info = networkInfoPlus.NetworkInfo();
+      final info = network_info_plus.NetworkInfo();
       // var wifiBSSID = await info.getWifiBSSID(); // 11:22:33:44:55:66
       String? ssid = await info.getWifiName();
       if (ssid != null &&
@@ -100,6 +102,7 @@ class SkyDeviceInfo {
 
   Future<DeviceInfo?> loadDeviceInfo({bool loadNetworkInfo = true}) async {
     if (_deviceInfo != null) return _deviceInfo!;
+    _loadNetworkInfo = loadNetworkInfo;
     if (!Platform.isWindows) {
       String json = await _channel.invokeMethod('loadDeviceInfo');
       log('deviceInfo $json');
@@ -109,21 +112,48 @@ class SkyDeviceInfo {
         var connectivityResult = await Connectivity().checkConnectivity();
         log('connectivityResult $connectivityResult');
         _networkInfo = await _readNetworkInfo(connectivityResult);
-        _onNetworkChanged?.call(_networkInfo);
+        onNetworkChanged(_networkInfo);
 
-        subscription = Connectivity()
+        _networkSubscription = Connectivity()
             .onConnectivityChanged
             .listen((ConnectivityResult result) async {
           _networkInfo = await _readNetworkInfo(result);
-          _onNetworkChanged?.call(_networkInfo);
+          onNetworkChanged(_networkInfo);
         });
       }
 
       return _deviceInfo;
     }
     if (_onDeviceInfo != null) return null;
-    Completer<DeviceInfo> completer = Completer<DeviceInfo>();
+    Completer<DeviceInfo?> completer = Completer<DeviceInfo?>();
     _onDeviceInfo = (result) => completer.complete(result);
+
+    _channel.setMethodCallHandler((MethodCall call) async {
+      // print("playerPlugin method=${call.method} arguments=${call.arguments}");
+      if (call.method == 'onDeviceInfo') {
+        log('deviceInfo ${_onDeviceInfo != null} ${call.arguments}');
+        DeviceInfo deviceInfo = DeviceInfo.fromJson(jsonDecode(call.arguments));
+        _deviceInfo = deviceInfo;
+        if (_loadNetworkInfo != true) {
+          _onDeviceInfo?.call(deviceInfo);
+          _onDeviceInfo = null;
+        }
+      } else if (call.method == 'onNetworkInfo') {
+        if (_networkInfoJson != call.arguments) {
+          _networkInfoJson = call.arguments;
+          log('loadNetworkInfo ${call.arguments}');
+          NetworkInfo networkInfo =
+              NetworkInfo.fromJson(jsonDecode(call.arguments));
+          _networkInfo = networkInfo;
+          onNetworkChanged(_networkInfo);
+        }
+        if (_loadNetworkInfo == true) {
+          _onDeviceInfo?.call(_deviceInfo);
+          _onDeviceInfo = null;
+        }
+      }
+    });
+
     final Map<String, dynamic> arguments = {
       'loadNetworkInfo': loadNetworkInfo,
     };
@@ -136,7 +166,8 @@ class SkyDeviceInfo {
     if (Platform.isWindows) {
       _channel.invokeMethod('release');
     }
-    subscription?.cancel();
+    _networkSubscription?.cancel();
+    _onNetworkCallbackList.clear();
     _deviceInfo = null;
     _networkInfo = null;
     _networkInfoJson = null;

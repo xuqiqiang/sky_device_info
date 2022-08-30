@@ -48,12 +48,18 @@ class _MyAppState extends State<MyApp> {
     setState(() {
       _deviceInfo = formatJson(deviceInfo ?? 'Unknown');
     });
-    _skyDeviceInfoPlugin.onNetworkChanged = (NetworkInfo? info) {
+    _skyDeviceInfoPlugin.addNetworkCallback((NetworkInfo? info) {
       NetworkInfo? networkInfo = _skyDeviceInfoPlugin.networkInfo;
       setState(() {
         _networkInfo = formatJson(networkInfo ?? 'Unknown');
       });
-    };
+    });
+    // _skyDeviceInfoPlugin.onNetworkChanged = (NetworkInfo? info) {
+    //   NetworkInfo? networkInfo = _skyDeviceInfoPlugin.networkInfo;
+    //   setState(() {
+    //     _networkInfo = formatJson(networkInfo ?? 'Unknown');
+    //   });
+    // };
   }
 
   Future<String?> getIntranetIp() async {
