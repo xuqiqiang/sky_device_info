@@ -42,8 +42,7 @@ class SkyDeviceInfoPlugin: FlutterPlugin, MethodCallHandler {
       }
       var osName = "Android ${Build.VERSION.RELEASE}"//Build.DISPLAY
       result.success("{\"deviceName\":\"$deviceName\",\"osName\":\"$osName\"}")
-    }
-    if (call.method == "getPlatformVersion") {
+    } else if (call.method == "getPlatformVersion") {
       result.success("Android ${Build.VERSION.RELEASE}")
     } else {
       result.notImplemented()

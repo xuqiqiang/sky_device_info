@@ -39,7 +39,7 @@ class SkyDeviceInfo {
           _networkInfoJson = call.arguments;
           log('loadNetworkInfo ${call.arguments}');
           NetworkInfo networkInfo =
-              NetworkInfo.fromJson(jsonDecode(call.arguments));
+          NetworkInfo.fromJson(jsonDecode(call.arguments));
           _networkInfo = networkInfo;
           _onNetworkChanged?.call(networkInfo);
         }
@@ -99,6 +99,7 @@ class SkyDeviceInfo {
   }
 
   Future<DeviceInfo?> loadDeviceInfo({bool loadNetworkInfo = true}) async {
+    if (_deviceInfo != null) return _deviceInfo!;
     if (!Platform.isWindows) {
       String json = await _channel.invokeMethod('loadDeviceInfo');
       log('deviceInfo $json');
@@ -120,7 +121,6 @@ class SkyDeviceInfo {
 
       return _deviceInfo;
     }
-    if (_deviceInfo != null) return _deviceInfo!;
     if (_onDeviceInfo != null) return null;
     Completer<DeviceInfo> completer = Completer<DeviceInfo>();
     _onDeviceInfo = (result) => completer.complete(result);
@@ -136,5 +136,8 @@ class SkyDeviceInfo {
       _channel.invokeMethod('release');
     }
     subscription?.cancel();
+    _deviceInfo = null;
+    _networkInfo = null;
+    _networkInfoJson = null;
   }
 }
