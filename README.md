@@ -24,6 +24,6 @@ if (deviceInfo != null) {
 ```
 
 <figure class="half">
-    <img src="example_android.png" width="300px" alt="Screenshot_1" />
+    <img src="https://raw.githubusercontent.com/xuqiqiang/sky_device_info/main/example_android.png" width="300px" alt="Screenshot_1" />
 </figure>
-<img src="example_windows.png" alt="Screenshot_2" />
+<img src="https://raw.githubusercontent.com/xuqiqiang/sky_device_info/main/example_windows.png" alt="Screenshot_2" />
