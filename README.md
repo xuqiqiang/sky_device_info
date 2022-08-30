@@ -5,7 +5,7 @@ A Flutter plugin to get device info.
 ## Usage
 Quick simple usage example:
 
-#### Single file
+#### Read network info
 ```dart
 final _plugin = SkyDeviceInfo();
 
