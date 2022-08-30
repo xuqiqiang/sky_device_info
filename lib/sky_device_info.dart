@@ -77,7 +77,7 @@ class SkyDeviceInfo {
   Future<NetworkInfo> _readNetworkInfo(connectivityResult) async {
     if (connectivityResult == ConnectivityResult.wifi) {
       final info = networkInfoPlus.NetworkInfo();
-      var wifiBSSID = await info.getWifiBSSID(); // 11:22:33:44:55:66
+      // var wifiBSSID = await info.getWifiBSSID(); // 11:22:33:44:55:66
       String? ssid = await info.getWifiName();
       if (ssid != null &&
           ssid.length > 2 &&
@@ -132,6 +132,7 @@ class SkyDeviceInfo {
   }
 
   release() {
+    _channel.setMethodCallHandler(null);
     if (Platform.isWindows) {
       _channel.invokeMethod('release');
     }
