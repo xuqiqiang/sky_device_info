@@ -1,10 +1,10 @@
 name: sky_device_info
 description: A Flutter plugin to get device info.
-version: 0.0.3
+version: 0.0.4
 homepage: https://github.com/xuqiqiang/sky_device_info
 
 environment:
-  sdk: ">=2.17.6 <3.0.0"
+  sdk: ">=2.16.2 <3.0.0"
   flutter: ">=2.5.0"
 
 dependencies:
@@ -17,7 +17,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^2.0.0
+  flutter_lints: ^1.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
