@@ -25,5 +25,5 @@ if (deviceInfo != null) {
 
 <figure class="half">
     <img src="example_android.png" width="300px" alt="Screenshot_1" />
-    <img src="example_windows.png" width="300px" alt="Screenshot_2" />
 </figure>
+<img src="example_windows.png" alt="Screenshot_2" />
