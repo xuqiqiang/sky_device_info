@@ -489,7 +489,9 @@ public:
 		if (NULL != pEnumerator) pEnumerator->Release();
 	}
 
-	void QueryNetwork(bool onlyFirst) {
+	std::string virtual_adapter_macs[9];
+
+	void QueryNetwork(bool exclude_virtual_adapter) {
 		NetworkAdapters.clear();
 		//PIP_ADAPTER_INFO结构体指针存储本机网卡信息
 		PIP_ADAPTER_INFO pIpAdapterInfo = new IP_ADAPTER_INFO();
@@ -519,7 +521,49 @@ public:
 				IP_ADDR_STRING* pIpAddrString = &(pAdapter->IpAddressList);
 				if (atoi(pIpAddrString->IpAddress.String) != 0) {
 
+					std::string macAddress = "";
+					for (DWORD i = 0; i < pAdapter->AddressLength; i++) {
+						char cs[10];
+						sprintf_s(cs, "%02X", pAdapter->Address[i]);
+						macAddress += cs;
+						if (i < pAdapter->AddressLength - 1) {
+							macAddress += ":";
+						}
+					}
+
+					if (exclude_virtual_adapter) {
+						// 综合stackoverflow和github得出（2016年10月8日）。
+						// 包含以下MAC地址的前8个字节（前3段）是虚拟网卡
+						// "00:05:69";
+						//vmware1
+						// "00:0C:29";
+						//vmware2"00:50:56";
+						//vmware3"00:1c:14";
+						//vmware4"00:1C:42";
+						//parallels1"00:03:FF";
+						//microsoft virtual pc"00:0F:4B";
+						//virtual iron 4"00:16:3E";
+						//red hat xen , oracle vm , xen source, novell xen"08:00:27";
+						//virtualbox
+						bool is_virtual_adapter = false;
+						for (int i = 0; i < 9; i++) {
+							std::string head = virtual_adapter_macs[i];
+							if (macAddress.compare(0, head.size(), head) == 0) {
+								is_virtual_adapter = true;
+								break;
+							}
+						}
+						if (is_virtual_adapter) {
+							//std::cout << "exclude_virtual_adapter: " << macAddress << std::endl;
+							pAdapter = pAdapter->Next;
+							continue;
+						}
+					}
+					
+
 					NetworkObject _adapter{};
+
+					_adapter.MacAddress = macAddress;
 
 					_adapter.Name = GBK_2_UTF8(pAdapter->Description);
 					_adapter.Id = pAdapter->AdapterName;
@@ -530,16 +574,8 @@ public:
 					_adapter.IpMaskAddress = pIpAddrString->IpMask.String;
 					_adapter.GatewayIpAddress = pAdapter->GatewayList.IpAddress.String;
 
-					std::string macAddress = "";
-					for (DWORD i = 0; i < pAdapter->AddressLength; i++) {
-						char cs[10];
-						sprintf_s(cs, "%02X", pAdapter->Address[i]);
-						macAddress += cs;
-						if (i < pAdapter->AddressLength - 1) {
-							macAddress += "-";
-						}
-					}
-					_adapter.MacAddress = macAddress;
+					
+					
 
 					/*do {
 						NetAddress _address{};
@@ -650,7 +686,7 @@ public:
 					}
 
 					NetworkAdapters.push_back(_adapter);
-					if (onlyFirst) break;
+					//if (onlyFirst) break;
 				}
 				pAdapter = pAdapter->Next;
 			}
@@ -719,5 +755,14 @@ public:
 		/*QuerySystem();
 		QueryGPU();
 		QueryNetwork();*/
+		virtual_adapter_macs[0] = "00:05:69";
+		virtual_adapter_macs[1] = "00:0C:29";
+		virtual_adapter_macs[2] = "00:50:56";
+		virtual_adapter_macs[3] = "00:1c:14";
+		virtual_adapter_macs[4] = "00:1C:42";
+		virtual_adapter_macs[5] = "00:03:FF";
+		virtual_adapter_macs[6] = "00:0F:4B";
+		virtual_adapter_macs[7] = "00:16:3E";
+		virtual_adapter_macs[8] = "08:00:27";
 	}
 };

@@ -1,3 +1,6 @@
+## 0.0.6
+Fix virtual network adapter.
+
 ## 0.0.5
 Fix error.
 

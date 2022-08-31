@@ -100,7 +100,8 @@ class SkyDeviceInfo {
     return await readNetworkInfoByDart();
   }
 
-  Future<DeviceInfo?> loadDeviceInfo({bool loadNetworkInfo = true}) async {
+  Future<DeviceInfo?> loadDeviceInfo(
+      {bool loadNetworkInfo = true, bool excludeVirtualAdapter = true}) async {
     if (_deviceInfo != null) return _deviceInfo!;
     _loadNetworkInfo = loadNetworkInfo;
     if (!Platform.isWindows) {
@@ -156,6 +157,7 @@ class SkyDeviceInfo {
 
     final Map<String, dynamic> arguments = {
       'loadNetworkInfo': loadNetworkInfo,
+      'excludeVirtualAdapter': excludeVirtualAdapter,
     };
     _channel.invokeMethod('loadDeviceInfo', arguments);
     return completer.future;

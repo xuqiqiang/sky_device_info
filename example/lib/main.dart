@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'dart:async';
@@ -7,7 +6,9 @@ import 'dart:async';
 import 'package:sky_device_info/beans.dart';
 import 'package:sky_device_info/sky_device_info.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SkyDeviceInfo().loadDeviceInfo();
   runApp(const MyApp());
 }
 
@@ -27,7 +28,6 @@ class _MyAppState extends State<MyApp> {
   void initState() {
     super.initState();
     loadDeviceInfo();
-    getIntranetIp();
   }
 
   @override
@@ -54,27 +54,17 @@ class _MyAppState extends State<MyApp> {
         _networkInfo = formatJson(networkInfo ?? 'Unknown');
       });
     });
-    // _skyDeviceInfoPlugin.onNetworkChanged = (NetworkInfo? info) {
-    //   NetworkInfo? networkInfo = _skyDeviceInfoPlugin.networkInfo;
-    //   setState(() {
-    //     _networkInfo = formatJson(networkInfo ?? 'Unknown');
-    //   });
-    // };
   }
 
   Future<String?> getIntranetIp() async {
-    String? ip;
-    for (var interface in await NetworkInterface.list()) {
-      SkyDeviceInfo.log('interface ${interface.name} ${interface.index}');
-      for (var addr in interface.addresses) {
-        SkyDeviceInfo.log(
-            'address ${addr.address} ${addr.host} ${addr.isLoopback} ${addr.isLinkLocal} ${addr.isMulticast}');
-        if (addr.address.startsWith('192.') ||
-            addr.address.startsWith('10.') ||
-            addr.address.startsWith('172.')) ip = addr.address;
+    DeviceInfo? deviceInfo = await _skyDeviceInfoPlugin.loadDeviceInfo();
+    if (deviceInfo != null) {
+      NetworkInfo? networkInfo = _skyDeviceInfoPlugin.networkInfo;
+      if (networkInfo != null && networkInfo.networkAdapters.isNotEmpty) {
+        return networkInfo.networkAdapters.first.ipAddress;
       }
     }
-    return ip;
+    return null;
   }
 
   @override
@@ -87,8 +77,10 @@ class _MyAppState extends State<MyApp> {
         body: Container(
           padding: const EdgeInsets.all(20),
           child: Center(
-            child:
-                Text('DeviceInfo: $_deviceInfo\nNetworkInfo: $_networkInfo'),
+            child: SingleChildScrollView(
+              child:
+                  Text('DeviceInfo: $_deviceInfo\nNetworkInfo: $_networkInfo'),
+            ),
           ),
         ),
       ),

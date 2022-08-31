@@ -27,6 +27,11 @@ class SkyDeviceInfoPlugin : public flutter::Plugin {
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
 };
 
+struct TParam {
+    bool load_network_info;
+    bool exclude_virtual_adapter;
+};
+
 }  // namespace sky_device_info
 
 #endif  // FLUTTER_PLUGIN_SKY_DEVICE_INFO_PLUGIN_H_

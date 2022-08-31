@@ -21,7 +21,10 @@ static std::unique_ptr<flutter::MethodChannel<>> m_channel;
 
 static bool IsCheckNetworkInfo = false;
 
-DWORD WINAPI TCheckDeviceInfo(bool load_network_info) {
+DWORD WINAPI TCheckDeviceInfo(TParam* param) {
+    bool load_network_info = param->load_network_info;
+    bool exclude_virtual_adapter = param->exclude_virtual_adapter;
+    delete param;
     PlatformInfo info{};
     info.QuerySystem();
     info.QueryGPU();
@@ -43,7 +46,7 @@ DWORD WINAPI TCheckDeviceInfo(bool load_network_info) {
         //Sleep(500);
         IsCheckNetworkInfo = true;
         while (IsCheckNetworkInfo) {
-            info.QueryNetwork(true);
+            info.QueryNetwork(exclude_virtual_adapter);
             std::string str = "{"
                 + info.PrintNetwork() + "}";
 
@@ -106,8 +109,10 @@ void SkyDeviceInfoPlugin::HandleMethodCall(
   else if (method_call.method_name().compare("loadDeviceInfo") == 0) {
       const flutter::EncodableMap& args =
           std::get<flutter::EncodableMap>(*method_call.arguments());
-      bool load_network_info = std::get<bool>(args.at(flutter::EncodableValue("loadNetworkInfo")));
-      std::thread th(TCheckDeviceInfo, load_network_info);
+      TParam* param = new TParam;
+      param->load_network_info = std::get<bool>(args.at(flutter::EncodableValue("loadNetworkInfo")));
+      param->exclude_virtual_adapter = std::get<bool>(args.at(flutter::EncodableValue("excludeVirtualAdapter")));
+      std::thread th(TCheckDeviceInfo, param);
       th.detach();
       result->Success();
   } else if (method_call.method_name().compare("release") == 0) {

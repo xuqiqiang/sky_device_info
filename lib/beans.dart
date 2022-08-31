@@ -8,13 +8,13 @@ class DeviceInfo {
     this.deviceName,
     this.osName,
     this.monitorName,
-    this.gpu,
+    this.gpu = const [],
   });
 
   String? deviceName;
   String? osName;
   String? monitorName;
-  List<GPUInfo>? gpu;
+  List<GPUInfo> gpu;
 
   factory DeviceInfo.fromJson(Map<String, dynamic> srcJson) =>
       _$DeviceInfoFromJson(srcJson);
@@ -71,8 +71,8 @@ class NetworkAdapter {
   String? gatewayIpAddress; // 网关地址
   String? ipBroadcast; // 子网地址
 
-  NetworkAdapter({
-      this.name,
+  NetworkAdapter(
+      {this.name,
       this.id,
       this.index,
       this.bandwidth,
