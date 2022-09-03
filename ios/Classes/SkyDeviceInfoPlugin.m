@@ -9,14 +9,17 @@
   [registrar addMethodCallDelegate:instance channel:channel];
 }
 
+#define AddStr(str1,str2)           [str1 stringByAppendingString:str2]
+
 - (void)handleMethodCall:(FlutterMethodCall*)call result:(FlutterResult)result {
   if ([@"getPlatformVersion" isEqualToString:call.method]) {
     result([@"iOS " stringByAppendingString:[[UIDevice currentDevice] systemVersion]]);
   } else if ([@"loadDeviceInfo" isEqualToString:call.method]) {
-    result([@"{\"deviceName\":\"" stringByAppendingString:[[UIDevice currentDevice] name]
-      stringByAppendingString:@"\",\"osName\":\"iOS "
-      stringByAppendingString:[[UIDevice currentDevice] systemVersion]
-      stringByAppendingString:@"\"}"]);
+    NSString* str = AddStr(@"{\"deviceName\":\"", [[UIDevice currentDevice] name]);
+    str = AddStr(str, @"\",\"osName\":\"iOS ");
+    str = AddStr(str, [[UIDevice currentDevice] systemVersion]);
+    str = AddStr(str, @"\"}");
+    result(str);
   } else {
     result(FlutterMethodNotImplemented);
   }

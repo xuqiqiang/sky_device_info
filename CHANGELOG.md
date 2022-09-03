@@ -1,3 +1,6 @@
+## 0.0.7
+Fix ios error.
+
 ## 0.0.6
 Fix virtual network adapter.
 
