@@ -489,7 +489,7 @@ public:
 		if (NULL != pEnumerator) pEnumerator->Release();
 	}
 
-	std::string virtual_adapter_macs[9];
+	std::string virtual_adapter_macs[10];
 
 	void QueryNetwork(bool exclude_virtual_adapter) {
 		NetworkAdapters.clear();
@@ -534,19 +534,18 @@ public:
 					if (exclude_virtual_adapter) {
 						// 综合stackoverflow和github得出（2016年10月8日）。
 						// 包含以下MAC地址的前8个字节（前3段）是虚拟网卡
-						// "00:05:69";
-						//vmware1
-						// "00:0C:29";
-						//vmware2"00:50:56";
-						//vmware3"00:1c:14";
-						//vmware4"00:1C:42";
-						//parallels1"00:03:FF";
-						//microsoft virtual pc"00:0F:4B";
-						//virtual iron 4"00:16:3E";
-						//red hat xen , oracle vm , xen source, novell xen"08:00:27";
-						//virtualbox
+						// vmware1 "00:05:69";
+						// vmware2 "00:0C:29";
+						// vmware3 "00:50:56";
+						// vmware4 "00:1c:14";
+						// parallels1 "00:1C:42";
+						// microsoft virtual pc "00:03:FF";
+						// virtual iron 4 "00:0F:4B";
+						// red hat xen , oracle vm , xen source, novell xen "00:16:3E";
+						// virtualbox "08:00:27";
+						// wsl "00:15:5D";
 						bool is_virtual_adapter = false;
-						for (int i = 0; i < 9; i++) {
+						for (int i = 0; i < 10; i++) {
 							std::string head = virtual_adapter_macs[i];
 							if (macAddress.compare(0, head.size(), head) == 0) {
 								is_virtual_adapter = true;
@@ -764,5 +763,6 @@ public:
 		virtual_adapter_macs[6] = "00:0F:4B";
 		virtual_adapter_macs[7] = "00:16:3E";
 		virtual_adapter_macs[8] = "08:00:27";
+		virtual_adapter_macs[9] = "00:15:5D";
 	}
 };
